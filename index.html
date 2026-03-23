@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Pricing — Blank</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 2rem; max-width: 860px; margin: 0 auto; }
+.section { margin-bottom: 2rem; }
+.section-title { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+.sub-title { font-size: 11px; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.07em; margin: 1.5rem 0 0.75rem; }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.cards-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.cards-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.card { background: #f5f5f5; border-radius: 8px; padding: 0.9rem 1rem; }
+.card-label { font-size: 12px; color: #999; margin-bottom: 4px; }
+.card-value { font-size: 22px; font-weight: 500; color: #1a1a1a; }
+.card-value.big { font-size: 28px; }
+.card-value.green { color: #2d7a3a; }
+.card-value.red { color: #a93226; }
+.card-sub { font-size: 12px; color: #777; margin-top: 2px; }
+.card.highlight { background: #fff; border: 0.5px solid #ccc; }
+.slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.slider-label { font-size: 14px; color: #555; min-width: 210px; }
+.slider-val { font-size: 14px; font-weight: 500; min-width: 80px; text-align: right; color: #1a1a1a; }
+input[type=range] { flex: 1; accent-color: #1a1a1a; }
+.divider { border: none; border-top: 0.5px solid #e5e5e5; margin: 1.5rem 0; }
+.table-wrap { border: 0.5px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f5f5f5; padding: 8px 12px; text-align: left; font-weight: 500; color: #666; border-bottom: 0.5px solid #e0e0e0; }
+td { padding: 8px 12px; border-bottom: 0.5px solid #f0f0f0; color: #1a1a1a; }
+tr:last-child td { border-bottom: none; }
+tr.best td { background: #fafafa; font-weight: 500; }
+tr.total-row td { background: #f0f0f0; font-weight: 500; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; margin-left: 6px; }
+.badge-green { background: #e6f4ea; color: #2d7a3a; }
+.badge-amber { background: #fef3cd; color: #92610a; }
+.badge-red { background: #fdecea; color: #a93226; }
+.desc-box { background: #f5f5f5; border-radius: 8px; padding: 0.9rem 1rem; font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 1.5rem; }
+.alert { background: #fef3cd; border-radius: 8px; padding: 0.75rem 1rem; font-size: 13px; color: #92610a; margin-bottom: 1rem; }
+.tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 0.5px solid #e5e5e5; overflow-x: auto; }
+.tab { font-size: 13px; padding: 8px 16px; border: none; border-bottom: 2px solid transparent; cursor: pointer; color: #888; background: transparent; margin-bottom: -1px; white-space: nowrap; flex-shrink: 0; }
+.tab.active { color: #1a1a1a; font-weight: 500; border-bottom-color: #1a1a1a; }
+.pane { display: none; padding-top: 1.5rem; }
+.pane.active { display: block; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+.subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; }
+.wf-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-bottom: 0.5px solid #f5f5f5; font-size: 13px; }
+.wf-row:last-child { border-bottom: none; }
+.wf-label { color: #444; }
+.wf-val { font-weight: 500; min-width: 110px; text-align: right; }
+.wf-val.pos { color: #2d7a3a; }
+.wf-val.neg { color: #a93226; }
+.wf-val.neutral { color: #1a1a1a; }
+.wf-row.wf-subtotal { background: #fafafa; }
+.wf-row.wf-total { background: #f0f0f0; border-radius: 6px; margin-top: 2px; }
+.wf-row.wf-total .wf-label { font-weight: 500; color: #1a1a1a; }
+.source-tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; background: #f0f0f0; color: #999; vertical-align: middle; }
+.consolidado-hint { font-size: 12px; color: #aaa; margin-bottom: 1.5rem; line-height: 1.6; }
+.fixo-total-bar { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 8px; padding: 10px 14px; margin-top: 0.5rem; margin-bottom: 1.5rem; }
+.fixo-total-label { font-size: 13px; color: #555; font-weight: 500; }
+.fixo-total-val { font-size: 18px; font-weight: 500; color: #1a1a1a; }
+</style>
+</head>
+<body>
+
+<h1>Simulador de pricing</h1>
+<p class="subtitle">Programa de Aquisição Orgânica para Empresários — Blank</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('base', event)">Simulador base</button>
+  <button class="tab" onclick="switchTab('desconto', event)">Descontos e pagamento</button>
+  <button class="tab" onclick="switchTab('ltv', event)">LTV e esteira</button>
+  <button class="tab" onclick="switchTab('consolidado', event)">Rentabilidade consolidada</button>
+</div>
+
+<!-- ABA 1: BASE -->
+<div id="pane-base" class="pane active">
+  <div class="section">
+    <div class="section-title">Custos variáveis</div>
+    <div class="slider-row"><span class="slider-label">Impostos (Lucro Presumido)</span><input type="range" id="s-imp" min="10" max="20" step="0.5" value="14.5"><span class="slider-val" id="v-imp">14,5%</span></div>
+    <div class="slider-row"><span class="slider-label">Taxa da plataforma</span><input type="range" id="s-plat" min="0" max="10" step="0.5" value="5"><span class="slider-val" id="v-plat">5,0%</span></div>
+    <div class="slider-row"><span class="slider-label">Comissão de vendas</span><input type="range" id="s-com" min="0" max="15" step="0.5" value="5"><span class="slider-val" id="v-com">5,0%</span></div>
+    <div class="slider-row"><span class="slider-label">Operacional variável</span><input type="range" id="s-op" min="0" max="5" step="0.5" value="1.5"><span class="slider-val" id="v-op">1,5%</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Turma</div>
+    <div class="slider-row"><span class="slider-label">Preço de tabela (R$)</span><input type="range" id="s-preco" min="3000" max="15000" step="500" value="6000"><span class="slider-val" id="v-preco">R$ 6.000</span></div>
+    <div class="slider-row"><span class="slider-label">Alunos por turma</span><input type="range" id="s-alunos" min="5" max="60" step="5" value="30"><span class="slider-val" id="v-alunos">30</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Custo fixo por turma — detalhado</div>
+    <div class="desc-box">Cada item abaixo representa um custo real de operação da turma. O total alimenta automaticamente o simulador e o consolidado.</div>
+
+    <div class="sub-title">Instrutores</div>
+    <div class="slider-row"><span class="slider-label">Valor/h dos fundadores (R$)</span><input type="range" id="f-vh-fund" min="200" max="2000" step="50" value="500"><span class="slider-val" id="fv-vh-fund">R$ 500</span></div>
+    <div class="slider-row"><span class="slider-label">Horas por encontro (prep + exec)</span><input type="range" id="f-h-enc" min="1" max="6" step="0.5" value="4"><span class="slider-val" id="fv-h-enc">4h</span></div>
+    <div class="slider-row"><span class="slider-label">Encontros dos fundadores</span><input type="range" id="f-enc-fund" min="1" max="16" step="1" value="12"><span class="slider-val" id="fv-enc-fund">12</span></div>
+    <div class="slider-row"><span class="slider-label">Valor/h dos coordenadores (R$)</span><input type="range" id="f-vh-coord" min="100" max="800" step="50" value="200"><span class="slider-val" id="fv-vh-coord">R$ 200</span></div>
+    <div class="slider-row"><span class="slider-label">Encontros dos coordenadores</span><input type="range" id="f-enc-coord" min="0" max="16" step="1" value="4"><span class="slider-val" id="fv-enc-coord">4</span></div>
+
+    <div class="sub-title">Operação da turma</div>
+    <div class="slider-row"><span class="slider-label">CS / acompanhamento (R$)</span><input type="range" id="f-cs" min="0" max="10000" step="500" value="2000"><span class="slider-val" id="fv-cs">R$ 2.000</span></div>
+    <div class="slider-row"><span class="slider-label">Plataforma de aula (R$)</span><input type="range" id="f-plat" min="0" max="3000" step="100" value="500"><span class="slider-val" id="fv-plat">R$ 500</span></div>
+    <div class="slider-row"><span class="slider-label">Materiais e produção (R$)</span><input type="range" id="f-mat" min="0" max="5000" step="250" value="1000"><span class="slider-val" id="fv-mat">R$ 1.000</span></div>
+    <div class="slider-row"><span class="slider-label">Outros (R$)</span><input type="range" id="f-outros" min="0" max="5000" step="250" value="0"><span class="slider-val" id="fv-outros">R$ 0</span></div>
+
+    <div class="fixo-total-bar">
+      <span class="fixo-total-label">Total custo fixo estimado</span>
+      <span class="fixo-total-val" id="fixo-total-display">R$ 0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Cálculo</th><th>Valor</th></tr></thead>
+        <tbody id="body-fixo-detalhe"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="cards" id="cards-base"></div>
+  <div class="section-title">Cenários por tamanho de turma</div>
+  <div class="table-wrap"><table><thead><tr><th>Preço</th><th>10 alunos</th><th>20 alunos</th><th>40 alunos</th><th>50 alunos</th></tr></thead><tbody id="body-cenarios"></tbody></table></div>
+</div>
+
+<!-- ABA 2: DESCONTOS E PAGAMENTO -->
+<div id="pane-desconto" class="pane">
+  <div class="section">
+    <div class="section-title">Descontos</div>
+    <div class="desc-box">O desconto reduz a margem em valor absoluto. Um desconto de 10% sobre R$6.000 remove R$600 por aluno. A política abaixo define os tetos por situação e o que a Blank precisa em troca.</div>
+    <div class="slider-row"><span class="slider-label">% alunos com desconto</span><input type="range" id="d-pdesc" min="0" max="100" step="5" value="20"><span class="slider-val" id="dv-pdesc">20%</span></div>
+    <div class="slider-row"><span class="slider-label">Desconto médio aplicado (%)</span><input type="range" id="d-desc" min="0" max="20" step="1" value="8"><span class="slider-val" id="dv-desc">8%</span></div>
+  </div>
+  <div class="section-title">Tipos de desconto disponíveis</div>
+  <div class="table-wrap" style="margin-bottom:2rem;">
+    <table>
+      <thead><tr><th>Situação</th><th>Teto</th><th>Contrapartida obrigatória</th></tr></thead>
+      <tbody>
+        <tr><td>Indicação</td><td><strong>10%</strong></td><td>Novo aluno paga antes do desconto ser aplicado</td></tr>
+        <tr><td>Early bird (15d antes)</td><td><strong>10%</strong></td><td>Prazo fixo, sem exceção</td></tr>
+        <tr><td>Grupo (2+ mesmo CNPJ)</td><td><strong>8%</strong></td><td>Pagamento conjunto obrigatório</td></tr>
+        <tr><td>Comercial (vendedor)</td><td><strong>5%</strong></td><td>Aprovação de gestor + registro no CRM</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Método de pagamento</div>
+  <div class="desc-box">Todos os métodos passam pela plataforma — incluindo Pix. Ajuste as taxas reais e o mix esperado da turma.</div>
+  <div class="sub-title">Taxas por método</div>
+  <div class="slider-row"><span class="slider-label">Taxa Pix (%)</span><input type="range" id="p-pix" min="0" max="3" step="0.1" value="0.99" oninput="onAnyChange()"><span class="slider-val" id="pv-pix">1,0%</span></div>
+  <div class="slider-row"><span class="slider-label">Taxa cartão à vista (%)</span><input type="range" id="p-cv" min="1" max="5" step="0.1" value="2.5" oninput="onAnyChange()"><span class="slider-val" id="pv-cv">2,5%</span></div>
+  <div class="slider-row"><span class="slider-label">Taxa cartão parcelado (%)</span><input type="range" id="p-cp" min="3" max="10" step="0.1" value="5" oninput="onAnyChange()"><span class="slider-val" id="pv-cp">5,0%</span></div>
+  <div class="slider-row"><span class="slider-label">Taxa boleto (%)</span><input type="range" id="p-bol" min="0" max="3" step="0.1" value="1" oninput="onAnyChange()"><span class="slider-val" id="pv-bol">1,0%</span></div>
+  <div class="sub-title">Mix de pagamentos da turma</div>
+  <div class="slider-row"><span class="slider-label">% Pix</span><input type="range" id="m-pix" min="0" max="100" step="5" value="30" oninput="syncMix('pix')"><span class="slider-val" id="mv-pix">30%</span></div>
+  <div class="slider-row"><span class="slider-label">% Cartão à vista</span><input type="range" id="m-cv" min="0" max="100" step="5" value="20" oninput="syncMix('cv')"><span class="slider-val" id="mv-cv">20%</span></div>
+  <div class="slider-row"><span class="slider-label">% Cartão parcelado</span><input type="range" id="m-cp" min="0" max="100" step="5" value="40" oninput="syncMix('cp')"><span class="slider-val" id="mv-cp">40%</span></div>
+  <div class="slider-row"><span class="slider-label">% Boleto</span><input type="range" id="m-bol" min="0" max="100" step="5" value="10" oninput="syncMix('bol')"><span class="slider-val" id="mv-bol">10%</span></div>
+  <div id="mix-alert" class="alert" style="display:none;">Mix em <span id="mix-total"></span>% — ajuste para fechar em 100%.</div>
+  <div class="cards-2" id="cards-pagamento"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Método</th><th>Taxa</th><th>Preço líquido / aluno</th><th>Receita líquida (turma)</th><th>Custo vs. sem taxa</th></tr></thead>
+      <tbody id="body-pagamento"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ABA 3: LTV -->
+<div id="pane-ltv" class="pane">
+  <div class="section">
+    <div class="section-title">Esteira de produtos</div>
+    <div class="slider-row"><span class="slider-label">Conversão para Influentes (%)</span><input type="range" id="l-conv" min="1" max="20" step="1" value="8"><span class="slider-val" id="lv-conv">8%</span></div>
+    <div class="slider-row"><span class="slider-label">Preço Influentes (R$)</span><input type="range" id="l-inf" min="50000" max="150000" step="5000" value="100000"><span class="slider-val" id="lv-inf">R$ 100.000</span></div>
+  </div>
+  <div class="cards" id="cards-ltv"></div>
+  <hr class="divider">
+  <div class="section-title">Critério de revisão de preço</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Indicador na 1ª turma</th><th>Sinal</th><th>Ação recomendada</th></tr></thead>
+      <tbody>
+        <tr><td>Conversão de leads &gt; 8%</td><td><span class="badge badge-amber">subprecificado</span></td><td>Testar R$8.500 na 2ª turma</td></tr>
+        <tr><td>Conversão de leads entre 5–8%</td><td><span class="badge badge-green">calibrado</span></td><td>Manter preço, testar parcelamento</td></tr>
+        <tr><td>Conversão de leads &lt; 5%</td><td><span class="badge badge-red">barreira de preço</span></td><td>Revisar narrativa antes de baixar preço</td></tr>
+        <tr><td>% parcelamento &gt; 70%</td><td><span class="badge badge-amber">preço à vista alto</span></td><td>Comunicar parcelamento como principal</td></tr>
+        <tr><td>Interesse em Influentes &gt; 15%</td><td><span class="badge badge-green">esteira funcionando</span></td><td>Mapear esses alunos para abordagem ativa</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ABA 4: CONSOLIDADO -->
+<div id="pane-consolidado" class="pane">
+  <p class="consolidado-hint">Todos os valores abaixo são calculados automaticamente a partir dos parâmetros definidos nas abas anteriores. Para ajustar qualquer número, volte à aba correspondente.</p>
+
+  <div class="section-title">Parâmetros ativos <span class="source-tag">lido das outras abas</span></div>
+  <div class="table-wrap" style="margin-bottom:1.5rem;">
+    <table>
+      <thead><tr><th>Parâmetro</th><th>Valor</th><th>Origem</th></tr></thead>
+      <tbody id="body-params"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Custo fixo detalhado <span class="source-tag">simulador base</span></div>
+  <div class="table-wrap" style="margin-bottom:1.5rem;">
+    <table>
+      <thead><tr><th>Item</th><th>Cálculo</th><th>Valor</th></tr></thead>
+      <tbody id="body-fixo-consolidado"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">DRE da turma</div>
+  <div class="table-wrap" style="margin-bottom:1.5rem;">
+    <div id="waterfall"></div>
+  </div>
+
+  <div class="section-title">Resumo</div>
+  <div class="cards-3" id="cards-consolidado"></div>
+
+  <hr class="divider">
+  <div class="section-title">Com LTV da esteira</div>
+  <div class="cards-3" id="cards-ltv2"></div>
+</div>
+
+<script>
+function fmt(n) { return 'R$ ' + Math.round(n).toLocaleString('pt-BR'); }
+function pct(n) { return (+n).toFixed(1) + '%'; }
+
+function calcFixo() {
+  var vhFund    = +document.getElementById('f-vh-fund').value;
+  var hEnc      = +document.getElementById('f-h-enc').value;
+  var encFund   = +document.getElementById('f-enc-fund').value;
+  var vhCoord   = +document.getElementById('f-vh-coord').value;
+  var encCoord  = +document.getElementById('f-enc-coord').value;
+  var cs        = +document.getElementById('f-cs').value;
+  var plat      = +document.getElementById('f-plat').value;
+  var mat       = +document.getElementById('f-mat').value;
+  var outros    = +document.getElementById('f-outros').value;
+
+  var fundTotal  = vhFund * hEnc * encFund;
+  var coordTotal = vhCoord * hEnc * encCoord;
+  var total = fundTotal + coordTotal + cs + plat + mat + outros;
+
+  return {
+    items: [
+      { label: 'Fundadores', calc: encFund + ' enc × ' + hEnc + 'h × ' + fmt(vhFund) + '/h', val: fundTotal },
+      { label: 'Coordenadores', calc: encCoord + ' enc × ' + hEnc + 'h × ' + fmt(vhCoord) + '/h', val: coordTotal },
+      { label: 'CS / acompanhamento', calc: '—', val: cs },
+      { label: 'Plataforma de aula', calc: '—', val: plat },
+      { label: 'Materiais e produção', calc: '—', val: mat },
+      { label: 'Outros', calc: '—', val: outros },
+    ],
+    total: total
+  };
+}
+
+function getState() {
+  var fixo = calcFixo();
+  return {
+    preco:   +document.getElementById('s-preco').value,
+    alunos:  +document.getElementById('s-alunos').value,
+    fixo:    fixo.total,
+    fixoItems: fixo.items,
+    imp:     +document.getElementById('s-imp').value,
+    plat:    +document.getElementById('s-plat').value,
+    com:     +document.getElementById('s-com').value,
+    op:      +document.getElementById('s-op').value,
+    pdesc:   +document.getElementById('d-pdesc').value / 100,
+    desc:    +document.getElementById('d-desc').value / 100,
+    tPix:    +document.getElementById('p-pix').value,
+    tCv:     +document.getElementById('p-cv').value,
+    tCp:     +document.getElementById('p-cp').value,
+    tBol:    +document.getElementById('p-bol').value,
+    mPix:    +document.getElementById('m-pix').value / 100,
+    mCv:     +document.getElementById('m-cv').value / 100,
+    mCp:     +document.getElementById('m-cp').value / 100,
+    mBol:    +document.getElementById('m-bol').value / 100,
+    conv:    +document.getElementById('l-conv').value / 100,
+    inf:     +document.getElementById('l-inf').value,
+  };
+}
+
+function taxaMedia(s) {
+  return s.tPix * s.mPix + s.tCv * s.mCv + s.tCp * s.mCp + s.tBol * s.mBol;
+}
+
+function calcDRE(s) {
+  var recBruta    = s.preco * s.alunos;
+  var perdaDesc   = -(s.preco * s.desc * s.pdesc * s.alunos);
+  var recPosDesc  = recBruta + perdaDesc;
+  var txPag       = taxaMedia(s) / 100;
+  var perdaPag    = -(recPosDesc * txPag);
+  var recPosPag   = recPosDesc + perdaPag;
+  var impostos    = -(recPosPag * s.imp / 100);
+  var plataforma  = -(recPosPag * s.plat / 100);
+  var comissao    = -(recPosPag * s.com / 100);
+  var opVar       = -(recPosPag * s.op / 100);
+  var mc          = recPosPag + impostos + plataforma + comissao + opVar;
+  var lucro       = mc - s.fixo;
+  var margemPct   = (lucro / recBruta) * 100;
+  var convN       = Math.round(s.alunos * s.conv * 10) / 10;
+  var recInf      = convN * s.inf;
+  var ltvTotal    = lucro + recInf;
+  return { recBruta, perdaDesc, recPosDesc, perdaPag, recPosPag, impostos, plataforma, comissao, opVar, mc, lucro, margemPct, convN, recInf, ltvTotal, txPag };
+}
+
+function updateFixoUI(s) {
+  var fixo = calcFixo();
+
+  document.getElementById('f-vh-fund').addEventListener && null;
+  document.getElementById('fv-vh-fund').textContent  = fmt(+document.getElementById('f-vh-fund').value);
+  document.getElementById('fv-h-enc').textContent    = +document.getElementById('f-h-enc').value + 'h';
+  document.getElementById('fv-enc-fund').textContent = +document.getElementById('f-enc-fund').value;
+  document.getElementById('fv-vh-coord').textContent = fmt(+document.getElementById('f-vh-coord').value);
+  document.getElementById('fv-enc-coord').textContent= +document.getElementById('f-enc-coord').value;
+  document.getElementById('fv-cs').textContent       = fmt(+document.getElementById('f-cs').value);
+  document.getElementById('fv-plat').textContent     = fmt(+document.getElementById('f-plat').value);
+  document.getElementById('fv-mat').textContent      = fmt(+document.getElementById('f-mat').value);
+  document.getElementById('fv-outros').textContent   = fmt(+document.getElementById('f-outros').value);
+
+  document.getElementById('fixo-total-display').textContent = fmt(fixo.total);
+
+  var rows = '';
+  fixo.items.forEach(function(item) {
+    if (item.val > 0) {
+      rows += '<tr><td>' + item.label + '</td><td style="color:#999;font-size:12px">' + item.calc + '</td><td style="font-weight:500">' + fmt(item.val) + '</td></tr>';
+    }
+  });
+  rows += '<tr class="total-row"><td>Total</td><td></td><td>' + fmt(fixo.total) + '</td></tr>';
+  document.getElementById('body-fixo-detalhe').innerHTML = rows;
+}
+
+function updateBase(s) {
+  var varTotal = s.imp + s.plat + s.com + s.op;
+  var mc = 100 - varTotal;
+  var beAlunos = Math.ceil((s.fixo / (mc / 100)) / s.preco);
+  var lucroTurma = s.preco * s.alunos * (1 - varTotal / 100) - s.fixo;
+  var margem = lucroTurma / (s.preco * s.alunos) * 100;
+
+  document.getElementById('v-imp').textContent    = pct(s.imp);
+  document.getElementById('v-plat').textContent   = pct(s.plat);
+  document.getElementById('v-com').textContent    = pct(s.com);
+  document.getElementById('v-op').textContent     = pct(s.op);
+  document.getElementById('v-preco').textContent  = fmt(s.preco);
+  document.getElementById('v-alunos').textContent = s.alunos;
+
+  document.getElementById('cards-base').innerHTML =
+    '<div class="card"><div class="card-label">Custo variável total</div><div class="card-value">' + pct(varTotal) + '</div></div>' +
+    '<div class="card"><div class="card-label">Margem de contribuição</div><div class="card-value">' + pct(mc) + '</div></div>' +
+    '<div class="card"><div class="card-label">Break-even</div><div class="card-value">' + beAlunos + ' alunos</div></div>' +
+    '<div class="card highlight"><div class="card-label">Lucro (' + s.alunos + ' al.)</div><div class="card-value">' + fmt(lucroTurma) + '</div><div class="card-sub">margem ' + pct(Math.max(0, margem)) + '</div></div>';
+
+  var precos = [4500, 5000, 6000, 8500, 10000];
+  var sizes = [10, 20, 40, 50];
+  var rows = '';
+  precos.forEach(function(p) {
+    var cur = p === s.preco;
+    rows += '<tr' + (cur ? ' class="best"' : '') + '><td>' + fmt(p) + (cur ? '<span class="badge badge-green">atual</span>' : '') + '</td>';
+    sizes.forEach(function(t) {
+      var l = p * t * (1 - varTotal / 100) - s.fixo;
+      rows += '<td>' + (l < 0 ? '<span style="color:#a93226">prejuízo</span>' : fmt(l)) + '</td>';
+    });
+    rows += '</tr>';
+  });
+  document.getElementById('body-cenarios').innerHTML = rows;
+}
+
+function updateDesconto(s) {
+  document.getElementById('dv-pdesc').textContent = Math.round(s.pdesc * 100) + '%';
+  document.getElementById('dv-desc').textContent  = Math.round(s.desc * 100) + '%';
+}
+
+function updatePagamento(s) {
+  document.getElementById('pv-pix').textContent  = pct(s.tPix);
+  document.getElementById('pv-cv').textContent   = pct(s.tCv);
+  document.getElementById('pv-cp').textContent   = pct(s.tCp);
+  document.getElementById('pv-bol').textContent  = pct(s.tBol);
+
+  var metodos = [
+    { nome: 'Pix',              taxa: s.tPix, mix: s.mPix },
+    { nome: 'Cartão à vista',   taxa: s.tCv,  mix: s.mCv  },
+    { nome: 'Cartão parcelado', taxa: s.tCp,  mix: s.mCp  },
+    { nome: 'Boleto',           taxa: s.tBol, mix: s.mBol },
+  ];
+  var recSemTaxa = s.preco * s.alunos;
+  var recMista = 0;
+  metodos.forEach(function(m) { recMista += s.preco * (1 - m.taxa / 100) * m.mix * s.alunos; });
+  var perda = recMista - recSemTaxa;
+
+  document.getElementById('cards-pagamento').innerHTML =
+    '<div class="card"><div class="card-label">Receita c/ mix atual</div><div class="card-value" style="font-size:18px">' + fmt(recMista) + '</div><div class="card-sub">vs. ' + fmt(recSemTaxa) + ' sem taxas</div></div>' +
+    '<div class="card highlight"><div class="card-label">Custo total de pagamento</div><div class="card-value" style="font-size:18px;color:#a93226">' + fmt(perda) + '</div><div class="card-sub">por turma de ' + s.alunos + ' alunos</div></div>';
+
+  var rows = '';
+  metodos.forEach(function(m) {
+    var pLiq = s.preco * (1 - m.taxa / 100);
+    var recT = pLiq * s.alunos;
+    var diff = recT - recSemTaxa;
+    rows += '<tr><td>' + m.nome + '</td><td>' + pct(m.taxa) + '</td><td>' + fmt(pLiq) + '</td><td>' + fmt(recT) + '</td><td style="color:#a93226">' + (diff === 0 ? '—' : fmt(diff)) + '</td></tr>';
+  });
+  document.getElementById('body-pagamento').innerHTML = rows;
+}
+
+function updateLTV(s) {
+  document.getElementById('lv-conv').textContent = Math.round(s.conv * 100) + '%';
+  document.getElementById('lv-inf').textContent  = fmt(s.inf);
+  var recDir = s.preco * s.alunos;
+  var convN  = Math.round(s.alunos * s.conv * 10) / 10;
+  var recInf = convN * s.inf;
+  var ltv    = recDir + recInf;
+
+  document.getElementById('cards-ltv').innerHTML =
+    '<div class="card"><div class="card-label">Receita direta</div><div class="card-value" style="font-size:18px">' + fmt(recDir) + '</div></div>' +
+    '<div class="card"><div class="card-label">Alunos para Influentes</div><div class="card-value" style="font-size:18px">' + convN.toFixed(1) + '</div><div class="card-sub">receita ' + fmt(recInf) + '</div></div>' +
+    '<div class="card highlight"><div class="card-label">LTV total da turma</div><div class="card-value" style="font-size:18px">' + fmt(ltv) + '</div></div>' +
+    '<div class="card"><div class="card-label">LTV por aluno</div><div class="card-value" style="font-size:18px">' + fmt(Math.round(ltv / s.alunos)) + '</div></div>';
+}
+
+function updateConsolidado(s) {
+  var c = calcDRE(s);
+
+  var params = [
+    { p: 'Preço de tabela',           v: fmt(s.preco),                           o: 'Simulador base' },
+    { p: 'Alunos na turma',           v: s.alunos,                               o: 'Simulador base' },
+    { p: 'Custo fixo total',          v: fmt(s.fixo),                            o: 'Simulador base' },
+    { p: 'Custos variáveis totais',   v: pct(s.imp + s.plat + s.com + s.op),    o: 'Simulador base' },
+    { p: '% alunos com desconto',     v: Math.round(s.pdesc * 100) + '%',        o: 'Descontos e pagamento' },
+    { p: 'Desconto médio',            v: Math.round(s.desc * 100) + '%',         o: 'Descontos e pagamento' },
+    { p: 'Taxa média de pagamento',   v: pct(c.txPag * 100),                     o: 'Descontos e pagamento' },
+    { p: 'Conversão para Influentes', v: Math.round(s.conv * 100) + '%',         o: 'LTV e esteira' },
+    { p: 'Preço Influentes',          v: fmt(s.inf),                             o: 'LTV e esteira' },
+  ];
+  var pRows = '';
+  params.forEach(function(p) {
+    pRows += '<tr><td>' + p.p + '</td><td style="font-weight:500">' + p.v + '</td><td style="font-size:12px;color:#999">' + p.o + '</td></tr>';
+  });
+  document.getElementById('body-params').innerHTML = pRows;
+
+  var fRows = '';
+  s.fixoItems.forEach(function(item) {
+    if (item.val > 0) {
+      fRows += '<tr><td>' + item.label + '</td><td style="color:#999;font-size:12px">' + item.calc + '</td><td style="font-weight:500">' + fmt(item.val) + '</td></tr>';
+    }
+  });
+  fRows += '<tr class="total-row"><td>Total custo fixo</td><td></td><td>' + fmt(s.fixo) + '</td></tr>';
+  document.getElementById('body-fixo-consolidado').innerHTML = fRows;
+
+  var wfItems = [
+    { label: 'Receita bruta', val: c.recBruta, type: 'pos' },
+    { label: 'Descontos (' + Math.round(s.pdesc*100) + '% dos alunos × ' + Math.round(s.desc*100) + '%)', val: c.perdaDesc, type: 'neg' },
+    { label: 'Taxas de pagamento (média ' + pct(c.txPag*100) + ')', val: c.perdaPag, type: 'neg' },
+    { label: 'Receita líquida ajustada', val: c.recPosPag, type: 'neutral', subtotal: true },
+    { label: 'Impostos (' + pct(s.imp) + ')', val: c.impostos, type: 'neg' },
+    { label: 'Taxa plataforma (' + pct(s.plat) + ')', val: c.plataforma, type: 'neg' },
+    { label: 'Comissão de vendas (' + pct(s.com) + ')', val: c.comissao, type: 'neg' },
+    { label: 'Operacional variável (' + pct(s.op) + ')', val: c.opVar, type: 'neg' },
+    { label: 'Margem de contribuição', val: c.mc, type: 'neutral', subtotal: true },
+    { label: 'Custo fixo da turma', val: -s.fixo, type: 'neg' },
+    { label: 'Lucro líquido', val: c.lucro, type: c.lucro >= 0 ? 'pos' : 'neg', total: true },
+  ];
+  var wfHtml = '';
+  wfItems.forEach(function(item) {
+    var cls = item.total ? 'wf-row wf-total' : item.subtotal ? 'wf-row wf-subtotal' : 'wf-row';
+    wfHtml += '<div class="' + cls + '"><span class="wf-label">' + item.label + '</span><span class="wf-val ' + item.type + '">' + fmt(item.val) + '</span></div>';
+  });
+  document.getElementById('waterfall').innerHTML = wfHtml;
+
+  var lc = c.lucro >= 0 ? 'green' : 'red';
+  document.getElementById('cards-consolidado').innerHTML =
+    '<div class="card"><div class="card-label">Receita bruta</div><div class="card-value" style="font-size:20px">' + fmt(c.recBruta) + '</div></div>' +
+    '<div class="card"><div class="card-label">Total de custos</div><div class="card-value red" style="font-size:20px">' + fmt(c.recBruta - c.lucro) + '</div></div>' +
+    '<div class="card highlight"><div class="card-label">Lucro líquido</div><div class="card-value ' + lc + ' big">' + fmt(c.lucro) + '</div><div class="card-sub">margem ' + pct(c.margemPct) + '</div></div>';
+
+  document.getElementById('cards-ltv2').innerHTML =
+    '<div class="card"><div class="card-label">Lucro direto da turma</div><div class="card-value" style="font-size:20px">' + fmt(c.lucro) + '</div></div>' +
+    '<div class="card"><div class="card-label">Alunos → Influentes (' + c.convN.toFixed(1) + ')</div><div class="card-value" style="font-size:20px;color:#2d7a3a">+' + fmt(c.recInf) + '</div></div>' +
+    '<div class="card highlight"><div class="card-label">LTV total da turma</div><div class="card-value big ' + (c.ltvTotal >= 0 ? 'green' : 'red') + '">' + fmt(c.ltvTotal) + '</div><div class="card-sub">' + fmt(Math.round(c.ltvTotal / s.alunos)) + ' por aluno</div></div>';
+}
+
+function syncMix() {
+  var keys = ['pix','cv','cp','bol'];
+  var total = 0;
+  keys.forEach(function(k) { total += +document.getElementById('m-' + k).value; });
+  keys.forEach(function(k) { document.getElementById('mv-' + k).textContent = +document.getElementById('m-' + k).value + '%'; });
+  document.getElementById('mix-total').textContent = total;
+  document.getElementById('mix-alert').style.display = total !== 100 ? 'block' : 'none';
+  onAnyChange();
+}
+
+function onAnyChange() {
+  var s = getState();
+  updateFixoUI(s);
+  updateBase(s);
+  updateDesconto(s);
+  updatePagamento(s);
+  updateLTV(s);
+  updateConsolidado(s);
+}
+
+function switchTab(name, e) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.pane').forEach(function(p) { p.classList.remove('active'); });
+  e.target.classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+}
+
+var allInputs = [
+  's-imp','s-plat','s-com','s-op','s-preco','s-alunos',
+  'f-vh-fund','f-h-enc','f-enc-fund','f-vh-coord','f-enc-coord',
+  'f-cs','f-plat','f-mat','f-outros',
+  'd-pdesc','d-desc',
+  'l-conv','l-inf',
+  'm-pix','m-cv','m-cp','m-bol'
+];
+allInputs.forEach(function(id) {
+  document.getElementById(id).addEventListener('input', onAnyChange);
+});
+
+onAnyChange();
+</script>
+</body>
+</html>
